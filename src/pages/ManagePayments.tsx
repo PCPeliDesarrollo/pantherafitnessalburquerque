@@ -10,6 +10,7 @@ import { Loader2, Ban, CheckCircle, Search, ChevronLeft, ChevronRight, CalendarI
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Calendar } from "@/components/ui/calendar";
 import { es } from "date-fns/locale";
 
