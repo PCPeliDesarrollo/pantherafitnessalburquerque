@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Ban, CheckCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { es } from "date-fns/locale";
 
 const MONTHS = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
