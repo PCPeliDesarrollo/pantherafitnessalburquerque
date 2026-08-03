@@ -250,6 +250,24 @@ const ManagePayments = () => {
   const currentMonthIdx = new Date().getMonth(); // 0-11
   const isCurrentYear = year === new Date().getFullYear();
 
+  const dayKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  // Map: día (YYYY-MM-DD) -> pagos registrados ese día
+  const paymentsByDay = new Map<string, { user: UserRow; month: number }[]>();
+  users.forEach((u) => {
+    u.paidDates.forEach((iso, month) => {
+      const key = dayKey(new Date(iso));
+      if (!paymentsByDay.has(key)) paymentsByDay.set(key, []);
+      paymentsByDay.get(key)!.push({ user: u, month });
+    });
+  });
+  const daysWithPayments = Array.from(paymentsByDay.keys()).map((k) => {
+    const [y, m, d] = k.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  });
+  const selectedDayPayments = selectedDay ? paymentsByDay.get(dayKey(selectedDay)) || [] : [];
+
   if (roleLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
