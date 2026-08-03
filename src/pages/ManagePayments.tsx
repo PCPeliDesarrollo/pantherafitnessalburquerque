@@ -51,6 +51,7 @@ const ManagePayments = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [dailyOpen, setDailyOpen] = useState(true);
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
