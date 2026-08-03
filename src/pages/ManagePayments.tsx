@@ -27,6 +27,7 @@ interface UserRow {
   blocked: boolean;
   role: string;
   paidMonths: Set<number>; // months (1-12) paid in the selected year
+  paidDates: Map<number, string>; // month -> paid_at ISO date
 }
 
 // Grace period: users must pay between day 1 and day 5 of the month
@@ -72,15 +73,18 @@ const ManagePayments = () => {
 
       const { data: payments, error: paymentsError } = await supabase
         .from("monthly_payments" as any)
-        .select("user_id, month, paid")
+        .select("user_id, month, paid, paid_at")
         .eq("year", year);
       if (paymentsError) throw paymentsError;
 
       const paidMap = new Map<string, Set<number>>();
+      const dateMap = new Map<string, Map<number, string>>();
       ((payments as any[]) || []).forEach((p) => {
         if (!p.paid) return;
         if (!paidMap.has(p.user_id)) paidMap.set(p.user_id, new Set());
         paidMap.get(p.user_id)!.add(p.month);
+        if (!dateMap.has(p.user_id)) dateMap.set(p.user_id, new Map());
+        if (p.paid_at) dateMap.get(p.user_id)!.set(p.month, p.paid_at);
       });
 
       const usersData: UserRow[] = (profiles || []).map((profile) => {
@@ -92,6 +96,7 @@ const ManagePayments = () => {
           blocked: profile.blocked,
           role: userRole?.role || "basica",
           paidMonths: paidMap.get(profile.id) || new Set(),
+          paidDates: dateMap.get(profile.id) || new Map(),
         };
       });
 
@@ -121,10 +126,11 @@ const ManagePayments = () => {
           .eq("month", month);
         if (error) throw error;
       } else {
+        var paidAtIso = new Date().toISOString();
         const { error } = await supabase
           .from("monthly_payments" as any)
           .upsert(
-            { user_id: userId, year, month, paid: true, paid_at: new Date().toISOString() },
+            { user_id: userId, year, month, paid: true, paid_at: paidAtIso },
             { onConflict: "user_id,year,month" }
           );
         if (error) throw error;
@@ -134,9 +140,15 @@ const ManagePayments = () => {
         prev.map((u) => {
           if (u.id !== userId) return u;
           const next = new Set(u.paidMonths);
-          if (currentlyPaid) next.delete(month);
-          else next.add(month);
-          return { ...u, paidMonths: next };
+          const nextDates = new Map(u.paidDates);
+          if (currentlyPaid) {
+            next.delete(month);
+            nextDates.delete(month);
+          } else {
+            next.add(month);
+            nextDates.set(month, paidAtIso!);
+          }
+          return { ...u, paidMonths: next, paidDates: nextDates };
         })
       );
     } catch (error) {
@@ -387,6 +399,16 @@ const ManagePayments = () => {
                         const paid = user.paidMonths.has(month);
                         const cellKey = `${user.id}-${month}`;
                         const isCurrent = isCurrentYear && i === currentMonthIdx;
+                        const paidAt = user.paidDates.get(month);
+                        const paidAtLabel = paidAt
+                          ? new Date(paidAt).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : null;
                         return (
                           <td key={month} className="p-1 text-center">
                             <button
@@ -399,7 +421,13 @@ const ManagePayments = () => {
                                   ? "bg-yellow-100 border-yellow-400 hover:bg-yellow-200"
                                   : "bg-transparent border-muted-foreground/30 hover:bg-muted"
                               }`}
-                              title={paid ? "Marcado como pagado" : "Marcar como pagado"}
+                              title={
+                                paid
+                                  ? paidAtLabel
+                                    ? `Pagado el ${paidAtLabel}`
+                                    : "Marcado como pagado (sin fecha registrada)"
+                                  : "Marcar como pagado"
+                              }
                             >
                               {togglingCell === cellKey ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
