@@ -377,6 +377,60 @@ const ManagePayments = () => {
       </div>
 
       <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Pagos por día</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col lg:flex-row gap-6">
+          <Calendar
+            mode="single"
+            locale={es}
+            selected={selectedDay}
+            onSelect={setSelectedDay}
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
+            modifiers={{ hasPayments: daysWithPayments }}
+            modifiersClassNames={{
+              hasPayments: "bg-green-500/15 text-green-700 font-semibold rounded-md",
+            }}
+            className="p-3 pointer-events-auto rounded-md border self-start"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold mb-3">
+              {selectedDay
+                ? `Pagos del ${selectedDay.toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}`
+                : "Selecciona un día"}
+            </h3>
+            {selectedDayPayments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No hay pagos registrados este día.
+              </p>
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {selectedDayPayments.map(({ user, month }) => (
+                  <li
+                    key={`${user.id}-${month}`}
+                    className="flex items-center justify-between gap-3 p-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{user.full_name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-700 border-green-500/20">
+                      Cuota {MONTHS_FULL[month - 1]}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>Meses pagados - {year}</CardTitle>
         </CardHeader>
