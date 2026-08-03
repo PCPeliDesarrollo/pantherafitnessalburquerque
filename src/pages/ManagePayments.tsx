@@ -379,68 +379,84 @@ const ManagePayments = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex flex-wrap items-center gap-2">
-            Pagos por día
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 font-normal">
-                  <CalendarIcon className="h-4 w-4" />
-                  {selectedDay
-                    ? selectedDay.toLocaleDateString("es-ES", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "Seleccionar fecha"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
-                <Calendar
-                  mode="single"
-                  locale={es}
-                  selected={selectedDay}
-                  onSelect={setSelectedDay}
-                  month={calendarMonth}
-                  onMonthChange={setCalendarMonth}
-                  modifiers={{ hasPayments: daysWithPayments }}
-                  modifiersClassNames={{
-                    hasPayments: "bg-green-500/15 text-green-700 font-semibold rounded-md",
-                  }}
-                  className="p-2 pointer-events-auto text-xs"
+      <Collapsible open={dailyOpen} onOpenChange={setDailyOpen}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger asChild>
+              <CardTitle className="flex flex-wrap items-center gap-2 cursor-pointer select-none">
+                Pagos por día
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 font-normal"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <CalendarIcon className="h-4 w-4" />
+                      {selectedDay
+                        ? selectedDay.toLocaleDateString("es-ES", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "Seleccionar fecha"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="start">
+                    <Calendar
+                      mode="single"
+                      locale={es}
+                      selected={selectedDay}
+                      onSelect={setSelectedDay}
+                      month={calendarMonth}
+                      onMonthChange={setCalendarMonth}
+                      modifiers={{ hasPayments: daysWithPayments }}
+                      modifiersClassNames={{
+                        hasPayments: "bg-green-500/15 text-green-700 font-semibold rounded-md",
+                      }}
+                      className="p-2 pointer-events-auto text-xs"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${
+                    dailyOpen ? "rotate-180" : ""
+                  }`}
                 />
-              </PopoverContent>
-            </Popover>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selectedDayPayments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {selectedDay
-                ? "No hay pagos registrados este día."
-                : "Selecciona una fecha para ver los pagos."}
-            </p>
-          ) : (
-            <ul className="divide-y rounded-md border">
-              {selectedDayPayments.map(({ user, month }) => (
-                <li
-                  key={`${user.id}-${month}`}
-                  className="flex items-center justify-between gap-3 p-3"
-                >
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{user.full_name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                  </div>
-                  <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-700 border-green-500/20">
-                    Cuota {MONTHS_FULL[month - 1]}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+              </CardTitle>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              {selectedDayPayments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {selectedDay
+                    ? "No hay pagos registrados este día."
+                    : "Selecciona una fecha para ver los pagos."}
+                </p>
+              ) : (
+                <ul className="divide-y rounded-md border">
+                  {selectedDayPayments.map(({ user, month }) => (
+                    <li
+                      key={`${user.id}-${month}`}
+                      className="flex items-center justify-between gap-3 p-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{user.full_name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                      </div>
+                      <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-700 border-green-500/20">
+                        Cuota {MONTHS_FULL[month - 1]}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       <Card>
         <CardHeader>
