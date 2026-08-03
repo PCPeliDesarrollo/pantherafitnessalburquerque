@@ -47,6 +47,8 @@ const ManagePayments = () => {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok">("all");
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
+  const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
