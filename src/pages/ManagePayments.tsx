@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Ban, CheckCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { es } from "date-fns/locale";
 
 const MONTHS = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
@@ -45,6 +47,8 @@ const ManagePayments = () => {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok">("all");
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
+  const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -246,6 +250,24 @@ const ManagePayments = () => {
   const currentMonthIdx = new Date().getMonth(); // 0-11
   const isCurrentYear = year === new Date().getFullYear();
 
+  const dayKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  // Map: día (YYYY-MM-DD) -> pagos registrados ese día
+  const paymentsByDay = new Map<string, { user: UserRow; month: number }[]>();
+  users.forEach((u) => {
+    u.paidDates.forEach((iso, month) => {
+      const key = dayKey(new Date(iso));
+      if (!paymentsByDay.has(key)) paymentsByDay.set(key, []);
+      paymentsByDay.get(key)!.push({ user: u, month });
+    });
+  });
+  const daysWithPayments = Array.from(paymentsByDay.keys()).map((k) => {
+    const [y, m, d] = k.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  });
+  const selectedDayPayments = selectedDay ? paymentsByDay.get(dayKey(selectedDay)) || [] : [];
+
   if (roleLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -353,6 +375,60 @@ const ManagePayments = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Pagos por día</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col lg:flex-row gap-6">
+          <Calendar
+            mode="single"
+            locale={es}
+            selected={selectedDay}
+            onSelect={setSelectedDay}
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
+            modifiers={{ hasPayments: daysWithPayments }}
+            modifiersClassNames={{
+              hasPayments: "bg-green-500/15 text-green-700 font-semibold rounded-md",
+            }}
+            className="p-3 pointer-events-auto rounded-md border self-start"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold mb-3">
+              {selectedDay
+                ? `Pagos del ${selectedDay.toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}`
+                : "Selecciona un día"}
+            </h3>
+            {selectedDayPayments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No hay pagos registrados este día.
+              </p>
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {selectedDayPayments.map(({ user, month }) => (
+                  <li
+                    key={`${user.id}-${month}`}
+                    className="flex items-center justify-between gap-3 p-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{user.full_name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-700 border-green-500/20">
+                      Cuota {MONTHS_FULL[month - 1]}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
