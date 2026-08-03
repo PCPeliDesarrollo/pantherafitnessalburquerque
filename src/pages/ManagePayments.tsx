@@ -399,6 +399,16 @@ const ManagePayments = () => {
                         const paid = user.paidMonths.has(month);
                         const cellKey = `${user.id}-${month}`;
                         const isCurrent = isCurrentYear && i === currentMonthIdx;
+                        const paidAt = user.paidDates.get(month);
+                        const paidAtLabel = paidAt
+                          ? new Date(paidAt).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : null;
                         return (
                           <td key={month} className="p-1 text-center">
                             <button
@@ -411,7 +421,13 @@ const ManagePayments = () => {
                                   ? "bg-yellow-100 border-yellow-400 hover:bg-yellow-200"
                                   : "bg-transparent border-muted-foreground/30 hover:bg-muted"
                               }`}
-                              title={paid ? "Marcado como pagado" : "Marcar como pagado"}
+                              title={
+                                paid
+                                  ? paidAtLabel
+                                    ? `Pagado el ${paidAtLabel}`
+                                    : "Marcado como pagado (sin fecha registrada)"
+                                  : "Marcar como pagado"
+                              }
                             >
                               {togglingCell === cellKey ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
