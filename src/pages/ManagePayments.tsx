@@ -379,7 +379,7 @@ const ManagePayments = () => {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex flex-wrap items-center gapless gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             Pagos por día
             <Popover>
               <PopoverTrigger asChild>
