@@ -51,7 +51,7 @@ const ManagePayments = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
-  const [dailyOpen, setDailyOpen] = useState(true);
+  const [dailyOpen, setDailyOpen] = useState(false);
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -384,7 +384,10 @@ const ManagePayments = () => {
           <CardHeader className="pb-3">
             <CollapsibleTrigger asChild>
               <CardTitle className="flex flex-wrap items-center gap-2 cursor-pointer select-none">
-                Pagos por día
+                <span>Pagos por día</span>
+                <Badge variant="secondary" className="shrink-0">
+                  {selectedDayPayments.length}
+                </Badge>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -436,17 +439,17 @@ const ManagePayments = () => {
                     : "Selecciona una fecha para ver los pagos."}
                 </p>
               ) : (
-                <ul className="divide-y rounded-md border">
+                <ul className="divide-y rounded-md border max-h-72 overflow-y-auto">
                   {selectedDayPayments.map(({ user, month }) => (
                     <li
                       key={`${user.id}-${month}`}
-                      className="flex items-center justify-between gap-3 p-3"
+                      className="flex items-center justify-between gap-3 px-3 py-2"
                     >
                       <div className="min-w-0">
-                        <div className="font-medium truncate">{user.full_name}</div>
-                        <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                        <div className="font-medium break-words">{user.full_name}</div>
+                        <div className="text-xs text-muted-foreground break-all">{user.email}</div>
                       </div>
-                      <Badge variant="outline" className="shrink-0 bg-green-500/10 text-green-700 border-green-500/20">
+                      <Badge variant="outline" className="shrink-0 text-xs bg-green-500/10 text-green-700 border-green-500/20">
                         Cuota {MONTHS_FULL[month - 1]}
                       </Badge>
                     </li>
@@ -467,7 +470,7 @@ const ManagePayments = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-2 sticky left-0 bg-card z-10 min-w-[180px]">Usuario</th>
+                  <th className="text-left p-2 sticky left-0 bg-card z-10 min-w-[200px]">Usuario</th>
                   {MONTHS.map((m, i) => (
                     <th
                       key={m}
@@ -492,9 +495,11 @@ const ManagePayments = () => {
                 ) : (
                   filteredUsers.map((user) => (
                     <tr key={user.id} className="border-b hover:bg-muted/30">
-                      <td className="p-2 sticky left-0 bg-card z-10">
-                        <div className="font-medium">{user.full_name}</div>
-                        <div className="text-xs text-muted-foreground truncate max-w-[180px]">
+                      <td className="p-2 sticky left-0 bg-card z-10 align-top">
+                        <div className="font-medium whitespace-normal break-words max-w-[200px]">
+                          {user.full_name}
+                        </div>
+                        <div className="text-xs text-muted-foreground break-all max-w-[200px]">
                           {user.email}
                         </div>
                       </td>
