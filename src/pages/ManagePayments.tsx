@@ -29,6 +29,7 @@ interface UserRow {
   full_name: string;
   email: string;
   blocked: boolean;
+  exempt: boolean;
   role: string;
   paidMonths: Set<number>; // months (1-12) paid in the selected year
   paidDates: Map<number, string>; // month -> paid_at ISO date
@@ -47,7 +48,7 @@ const ManagePayments = () => {
   const [togglingBlock, setTogglingBlock] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok" | "exempt">("all");
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
@@ -69,7 +70,7 @@ const ManagePayments = () => {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, apellidos, email, blocked")
+        .select("id, full_name, apellidos, email, blocked, payment_exempt")
         .order("full_name");
       if (profilesError) throw profilesError;
 
@@ -105,6 +106,7 @@ const ManagePayments = () => {
           full_name: fullName || "Sin nombre",
           email: profile.email || "Sin email",
           blocked: profile.blocked,
+          exempt: !!profile.payment_exempt,
           role: userRole?.role || "basica",
           paidMonths: paidMap.get(profile.id) || new Set(),
           paidDates: dateMap.get(profile.id) || new Map(),
@@ -174,6 +176,32 @@ const ManagePayments = () => {
     }
   };
 
+  const handleExemptToggle = async (userId: string, currentExempt: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ payment_exempt: !currentExempt } as any)
+        .eq("id", userId);
+      if (error) throw error;
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, exempt: !currentExempt } : u))
+      );
+      toast({
+        title: !currentExempt ? "Cliente exento" : "Cliente ya no exento",
+        description: !currentExempt
+          ? "No contará en deudas ni en pagos"
+          : "Vuelve a contar en el control de pagos",
+      });
+    } catch (error) {
+      console.error("Error toggling exempt:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado de exención",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleBlockToggle = async (userId: string, currentBlockedStatus: boolean) => {
     try {
       setTogglingBlock(userId);
@@ -218,10 +246,11 @@ const ManagePayments = () => {
 
   const getPendingUsersCount = () => {
     if (!isMonthDue()) return 0;
-    return users.filter((u) => !u.paidMonths.has(selectedMonth) && !u.blocked).length;
+    return users.filter((u) => !u.exempt && !u.paidMonths.has(selectedMonth) && !u.blocked).length;
   };
 
-  const getUserStatus = (user: UserRow): "blocked" | "pending" | "ok" => {
+  const getUserStatus = (user: UserRow): "blocked" | "pending" | "ok" | "exempt" => {
+    if (user.exempt) return "exempt";
     if (user.blocked) return "blocked";
     if (isMonthDue() && !user.paidMonths.has(selectedMonth)) return "pending";
     return "ok";
@@ -229,6 +258,12 @@ const ManagePayments = () => {
 
   const getStatusBadge = (user: UserRow) => {
     const s = getUserStatus(user);
+    if (s === "exempt")
+      return (
+        <Badge variant="outline" className="bg-muted text-muted-foreground">
+          Exento
+        </Badge>
+      );
     if (s === "blocked") return <Badge variant="destructive">Bloqueado</Badge>;
     if (s === "pending")
       return <Badge variant="destructive">Pendiente de pago</Badge>;
@@ -245,10 +280,11 @@ const ManagePayments = () => {
       user.full_name.toLowerCase().includes(s) || user.email.toLowerCase().includes(s);
     if (!matchesSearch) return false;
     if (statusFilter === "all") return true;
-    if (statusFilter === "blocked") return user.blocked;
+    if (statusFilter === "exempt") return user.exempt;
+    if (statusFilter === "blocked") return user.blocked && !user.exempt;
     if (statusFilter === "pending") {
       if (!isMonthDue()) return false;
-      return !user.paidMonths.has(selectedMonth) && !user.blocked;
+      return !user.exempt && !user.paidMonths.has(selectedMonth) && !user.blocked;
     }
     if (statusFilter === "ok") return getUserStatus(user) === "ok";
     return true;
@@ -284,8 +320,9 @@ const ManagePayments = () => {
   }
 
   const pendingCount = getPendingUsersCount();
-  const blockedCount = users.filter((u) => u.blocked).length;
+  const blockedCount = users.filter((u) => u.blocked && !u.exempt).length;
   const okCount = users.filter((u) => getUserStatus(u) === "ok").length;
+  const exemptCount = users.filter((u) => u.exempt).length;
 
   return (
     <div className="space-y-6">
@@ -328,7 +365,7 @@ const ManagePayments = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card
           onClick={() => setStatusFilter("all")}
           className={`cursor-pointer transition-colors hover:bg-muted/40 ${
@@ -379,6 +416,19 @@ const ManagePayments = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{okCount}</div>
+          </CardContent>
+        </Card>
+        <Card
+          onClick={() => setStatusFilter(statusFilter === "exempt" ? "all" : "exempt")}
+          className={`cursor-pointer transition-colors hover:bg-muted/40 ${
+            statusFilter === "exempt" ? "ring-2 ring-primary" : ""
+          }`}
+        >
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Exentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-muted-foreground">{exemptCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -553,6 +603,7 @@ const ManagePayments = () => {
                       })}
                       <td className="p-2 text-center">{getStatusBadge(user)}</td>
                       <td className="p-2 text-center">
+                        <div className="flex flex-col items-center gap-1">
                         <Button
                           size="sm"
                           variant={user.blocked ? "default" : "destructive"}
@@ -574,6 +625,15 @@ const ManagePayments = () => {
                             </>
                           )}
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs h-7"
+                          onClick={() => handleExemptToggle(user.id, user.exempt)}
+                        >
+                          {user.exempt ? "Quitar exención" : "Marcar exento"}
+                        </Button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -330,6 +330,7 @@ export type Database = {
           full_name: string | null
           id: string
           password_changed: boolean
+          payment_exempt: boolean
           peso: number | null
           telefono: string | null
           updated_at: string
@@ -346,6 +347,7 @@ export type Database = {
           full_name?: string | null
           id: string
           password_changed?: boolean
+          payment_exempt?: boolean
           peso?: number | null
           telefono?: string | null
           updated_at?: string
@@ -362,6 +364,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           password_changed?: boolean
+          payment_exempt?: boolean
           peso?: number | null
           telefono?: string | null
           updated_at?: string

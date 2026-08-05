@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payment_exempt boolean NOT NULL DEFAULT false;
