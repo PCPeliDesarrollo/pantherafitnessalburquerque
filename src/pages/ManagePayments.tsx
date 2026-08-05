@@ -69,7 +69,7 @@ const ManagePayments = () => {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, blocked")
+        .select("id, full_name, apellidos, email, blocked")
         .order("full_name");
       if (profilesError) throw profilesError;
 
@@ -94,11 +94,15 @@ const ManagePayments = () => {
         if (p.paid_at) dateMap.get(p.user_id)!.set(p.month, p.paid_at);
       });
 
-      const usersData: UserRow[] = (profiles || []).map((profile) => {
+      const usersData: UserRow[] = (profiles || []).map((profile: any) => {
         const userRole = roles.find((r) => r.user_id === profile.id);
+        const fullName = [profile.full_name, profile.apellidos]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
         return {
           id: profile.id,
-          full_name: profile.full_name || "Sin nombre",
+          full_name: fullName || "Sin nombre",
           email: profile.email || "Sin email",
           blocked: profile.blocked,
           role: userRole?.role || "basica",
