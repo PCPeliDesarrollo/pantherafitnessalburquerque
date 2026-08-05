@@ -11,6 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { es } from "date-fns/locale";
 
@@ -53,6 +61,8 @@ const ManagePayments = () => {
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [dailyOpen, setDailyOpen] = useState(false);
+  const [exemptDialogOpen, setExemptDialogOpen] = useState(false);
+  const [exemptSearch, setExemptSearch] = useState("");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -433,6 +443,86 @@ const ManagePayments = () => {
         </Card>
       </div>
 
+      {statusFilter === "exempt" && (
+        <Card>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base">Clientes exentos ({exemptCount})</CardTitle>
+            <Dialog open={exemptDialogOpen} onOpenChange={setExemptDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  Añadir exento
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Añadir cliente exento</DialogTitle>
+                </DialogHeader>
+                <Input
+                  placeholder="Buscar cliente..."
+                  value={exemptSearch}
+                  onChange={(e) => setExemptSearch(e.target.value)}
+                />
+                <ul className="max-h-72 overflow-y-auto divide-y rounded-md border">
+                  {users
+                    .filter((u) => !u.exempt)
+                    .filter((u) => {
+                      const s = exemptSearch.toLowerCase();
+                      return (
+                        u.full_name.toLowerCase().includes(s) ||
+                        u.email.toLowerCase().includes(s)
+                      );
+                    })
+                    .slice(0, 50)
+                    .map((u) => (
+                      <li key={u.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                        <div className="min-w-0">
+                          <div className="font-medium break-words">{u.full_name}</div>
+                          <div className="text-xs text-muted-foreground break-all">{u.email}</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleExemptToggle(u.id, false)}
+                        >
+                          Añadir
+                        </Button>
+                      </li>
+                    ))}
+                </ul>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent>
+            {exemptCount === 0 ? (
+              <p className="text-sm text-muted-foreground">No hay clientes exentos.</p>
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {users
+                  .filter((u) => u.exempt)
+                  .map((u) => (
+                    <li key={u.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                      <div className="min-w-0">
+                        <div className="font-medium break-words">{u.full_name}</div>
+                        <div className="text-xs text-muted-foreground break-all">{u.email}</div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1 text-xs"
+                        onClick={() => handleExemptToggle(u.id, true)}
+                      >
+                        <X className="h-4 w-4" />
+                        Quitar
+                      </Button>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Collapsible open={dailyOpen} onOpenChange={setDailyOpen}>
         <Card>
           <CardHeader className="pb-3">
@@ -603,7 +693,6 @@ const ManagePayments = () => {
                       })}
                       <td className="p-2 text-center">{getStatusBadge(user)}</td>
                       <td className="p-2 text-center">
-                        <div className="flex flex-col items-center gap-1">
                         <Button
                           size="sm"
                           variant={user.blocked ? "default" : "destructive"}
@@ -625,15 +714,6 @@ const ManagePayments = () => {
                             </>
                           )}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs h-7"
-                          onClick={() => handleExemptToggle(user.id, user.exempt)}
-                        >
-                          {user.exempt ? "Quitar exención" : "Marcar exento"}
-                        </Button>
-                        </div>
                       </td>
                     </tr>
                   ))
