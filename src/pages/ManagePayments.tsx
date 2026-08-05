@@ -11,6 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { es } from "date-fns/locale";
 
@@ -53,6 +61,8 @@ const ManagePayments = () => {
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [dailyOpen, setDailyOpen] = useState(false);
+  const [exemptDialogOpen, setExemptDialogOpen] = useState(false);
+  const [exemptSearch, setExemptSearch] = useState("");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
