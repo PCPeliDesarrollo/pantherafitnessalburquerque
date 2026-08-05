@@ -29,6 +29,7 @@ interface UserRow {
   full_name: string;
   email: string;
   blocked: boolean;
+  exempt: boolean;
   role: string;
   paidMonths: Set<number>; // months (1-12) paid in the selected year
   paidDates: Map<number, string>; // month -> paid_at ISO date
@@ -69,7 +70,7 @@ const ManagePayments = () => {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, apellidos, email, blocked")
+        .select("id, full_name, apellidos, email, blocked, payment_exempt")
         .order("full_name");
       if (profilesError) throw profilesError;
 
@@ -105,6 +106,7 @@ const ManagePayments = () => {
           full_name: fullName || "Sin nombre",
           email: profile.email || "Sin email",
           blocked: profile.blocked,
+          exempt: !!profile.payment_exempt,
           role: userRole?.role || "basica",
           paidMonths: paidMap.get(profile.id) || new Set(),
           paidDates: dateMap.get(profile.id) || new Map(),
