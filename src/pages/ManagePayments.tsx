@@ -603,6 +603,7 @@ const ManagePayments = () => {
                       })}
                       <td className="p-2 text-center">{getStatusBadge(user)}</td>
                       <td className="p-2 text-center">
+                        <div className="flex flex-col items-center gap-1">
                         <Button
                           size="sm"
                           variant={user.blocked ? "default" : "destructive"}
@@ -624,6 +625,15 @@ const ManagePayments = () => {
                             </>
                           )}
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs h-7"
+                          onClick={() => handleExemptToggle(user.id, user.exempt)}
+                        >
+                          {user.exempt ? "Quitar exención" : "Marcar exento"}
+                        </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
