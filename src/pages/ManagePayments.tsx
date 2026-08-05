@@ -176,6 +176,32 @@ const ManagePayments = () => {
     }
   };
 
+  const handleExemptToggle = async (userId: string, currentExempt: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ payment_exempt: !currentExempt } as any)
+        .eq("id", userId);
+      if (error) throw error;
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, exempt: !currentExempt } : u))
+      );
+      toast({
+        title: !currentExempt ? "Cliente exento" : "Cliente ya no exento",
+        description: !currentExempt
+          ? "No contará en deudas ni en pagos"
+          : "Vuelve a contar en el control de pagos",
+      });
+    } catch (error) {
+      console.error("Error toggling exempt:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado de exención",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleBlockToggle = async (userId: string, currentBlockedStatus: boolean) => {
     try {
       setTogglingBlock(userId);
