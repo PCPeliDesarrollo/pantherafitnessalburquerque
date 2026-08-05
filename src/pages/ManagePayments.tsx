@@ -470,7 +470,7 @@ const ManagePayments = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-2 sticky left-0 bg-card z-10 min-w-[200px]">Usuario</th>
+                  <th className="text-left p-2 sticky left-0 bg-card z-10 min-w-[220px]">Usuario</th>
                   {MONTHS.map((m, i) => (
                     <th
                       key={m}
@@ -496,10 +496,10 @@ const ManagePayments = () => {
                   filteredUsers.map((user) => (
                     <tr key={user.id} className="border-b hover:bg-muted/30">
                       <td className="p-2 sticky left-0 bg-card z-10 align-top">
-                        <div className="font-medium whitespace-normal break-words max-w-[200px]">
+                        <div className="font-medium whitespace-normal break-words">
                           {user.full_name}
                         </div>
-                        <div className="text-xs text-muted-foreground break-all max-w-[200px]">
+                        <div className="text-xs text-muted-foreground break-all max-w-[220px]">
                           {user.email}
                         </div>
                       </td>
