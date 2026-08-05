@@ -48,7 +48,7 @@ const ManagePayments = () => {
   const [togglingBlock, setTogglingBlock] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "blocked" | "ok" | "exempt">("all");
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
@@ -254,10 +254,11 @@ const ManagePayments = () => {
       user.full_name.toLowerCase().includes(s) || user.email.toLowerCase().includes(s);
     if (!matchesSearch) return false;
     if (statusFilter === "all") return true;
-    if (statusFilter === "blocked") return user.blocked;
+    if (statusFilter === "exempt") return user.exempt;
+    if (statusFilter === "blocked") return user.blocked && !user.exempt;
     if (statusFilter === "pending") {
       if (!isMonthDue()) return false;
-      return !user.paidMonths.has(selectedMonth) && !user.blocked;
+      return !user.exempt && !user.paidMonths.has(selectedMonth) && !user.blocked;
     }
     if (statusFilter === "ok") return getUserStatus(user) === "ok";
     return true;
@@ -293,8 +294,9 @@ const ManagePayments = () => {
   }
 
   const pendingCount = getPendingUsersCount();
-  const blockedCount = users.filter((u) => u.blocked).length;
+  const blockedCount = users.filter((u) => u.blocked && !u.exempt).length;
   const okCount = users.filter((u) => getUserStatus(u) === "ok").length;
+  const exemptCount = users.filter((u) => u.exempt).length;
 
   return (
     <div className="space-y-6">
@@ -337,7 +339,7 @@ const ManagePayments = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card
           onClick={() => setStatusFilter("all")}
           className={`cursor-pointer transition-colors hover:bg-muted/40 ${
@@ -388,6 +390,19 @@ const ManagePayments = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{okCount}</div>
+          </CardContent>
+        </Card>
+        <Card
+          onClick={() => setStatusFilter(statusFilter === "exempt" ? "all" : "exempt")}
+          className={`cursor-pointer transition-colors hover:bg-muted/40 ${
+            statusFilter === "exempt" ? "ring-2 ring-primary" : ""
+          }`}
+        >
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Exentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-muted-foreground">{exemptCount}</div>
           </CardContent>
         </Card>
       </div>
