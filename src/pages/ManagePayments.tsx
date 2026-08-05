@@ -220,10 +220,11 @@ const ManagePayments = () => {
 
   const getPendingUsersCount = () => {
     if (!isMonthDue()) return 0;
-    return users.filter((u) => !u.paidMonths.has(selectedMonth) && !u.blocked).length;
+    return users.filter((u) => !u.exempt && !u.paidMonths.has(selectedMonth) && !u.blocked).length;
   };
 
-  const getUserStatus = (user: UserRow): "blocked" | "pending" | "ok" => {
+  const getUserStatus = (user: UserRow): "blocked" | "pending" | "ok" | "exempt" => {
+    if (user.exempt) return "exempt";
     if (user.blocked) return "blocked";
     if (isMonthDue() && !user.paidMonths.has(selectedMonth)) return "pending";
     return "ok";
@@ -231,6 +232,12 @@ const ManagePayments = () => {
 
   const getStatusBadge = (user: UserRow) => {
     const s = getUserStatus(user);
+    if (s === "exempt")
+      return (
+        <Badge variant="outline" className="bg-muted text-muted-foreground">
+          Exento
+        </Badge>
+      );
     if (s === "blocked") return <Badge variant="destructive">Bloqueado</Badge>;
     if (s === "pending")
       return <Badge variant="destructive">Pendiente de pago</Badge>;
