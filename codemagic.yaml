@@ -221,3 +221,55 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  android-workflow:
+    name: Android Google Play Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      # IMPORTANTE: configura tu keystore en Codemagic (Settings > Publisher account > Keystores)
+      # y cambia los valores de abajo por los tuyos antes de subir a Google Play.
+      android_signing:
+        - keystore_name: panthera_release_keystore
+          keystore_password: $KEYSTORE_PASSWORD
+          key_alias: $KEY_ALIAS
+          key_password: $KEY_PASSWORD
+      vars:
+        PACKAGE_NAME: "com.pantherafitness.alburquerque"
+      node: v20.11.1
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci --legacy-peer-deps
+      - name: Build web app
+        script: |
+          npm run build
+      - name: Add Android platform
+        script: |
+          npx cap add android || true
+      - name: Set Android target SDK to API 36
+        script: |
+          chmod +x scripts/update-android-sdk.sh
+          ./scripts/update-android-sdk.sh
+      - name: Sync Android platform
+        script: |
+          npx cap sync android
+      - name: Set Android version and build number
+        script: |
+          BUILD_NO="${BUILD_NUMBER:-${CM_BUILD_NUMBER:-1}}"
+          # android/app/build.gradle se genera en el paso anterior
+          APP_BUILD="android/app/build.gradle"
+          if [ -f "$APP_BUILD" ]; then
+            # versionName
+            perl -i -pe "s/versionName \"[0-9.]+\"/versionName \"1.0.3\"/g" "$APP_BUILD"
+            # versionCode
+            perl -i -pe "s/versionCode [0-9]+/versionCode $BUILD_NO/g" "$APP_BUILD"
+            echo "Android versionName=1.0.3 versionCode=$BUILD_NO"
+          fi
+      - name: Build Android App Bundle
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/logs/**/*.txt
