@@ -16,8 +16,12 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0
+    },
+    FirebaseMessaging: {
+      presentationOptions: ["alert", "badge", "sound"]
     }
   }
+
 };
 
 export default config;
