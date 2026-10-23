@@ -107,15 +107,7 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${subscriptions?.length || 0} subscriptions for user ${user_id}`)
 
-    // Send push notification to all user's devices
-    if (subscriptions && subscriptions.length > 0) {
-      const pushPromises = subscriptions.map(({ subscription }) =>
-        sendWebPush(subscription, title, message)
-      )
-      
-      await Promise.all(pushPromises)
-      console.log(`Push notifications sent successfully to ${subscriptions.length} devices`)
-    }
+    // Real push delivery happens in push-dispatch, triggered by the insert below.
 
     // Also create in-app notification
     const { error: notifError } = await supabase
