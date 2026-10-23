@@ -40,10 +40,12 @@ async function sendToNativeDevices(supabase: SupabaseClient, notif: Notification
             token: device.token,
             notification: { title: notif.title, body: notif.message },
             data: { notification_id: notif.id },
-            android: { priority: 'HIGH' },
+            android: { priority: 'HIGH', notification: { defaultSound: true } },
             apns: {
-              payload: { aps: { sound: 'default', badge: 1, 'content-available': 1 } },
+              headers: { 'apns-priority': '10' },
+              payload: { aps: { sound: 'default', badge: 1 } },
             },
+
           },
         }),
       })
