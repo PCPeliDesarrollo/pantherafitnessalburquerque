@@ -268,11 +268,10 @@ export default function ClassDetail() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Compute end of current week (Sunday 23:59:59)
-      const dayOfWeek = today.getDay(); // 0=Sun..6=Sat
-      const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+      // Rolling 7-day window: users can book any class in the next 7 days
+      // (no need to wait until Monday 00:01).
       const endDate = new Date(today);
-      endDate.setDate(today.getDate() + daysUntilSunday);
+      endDate.setDate(today.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
       
       for (const schedule of schedulesData || []) {
