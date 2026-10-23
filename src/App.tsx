@@ -29,6 +29,8 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNativePush } from "./hooks/useNativePush";
+
 
 const queryClient = new QueryClient();
 
@@ -126,7 +128,10 @@ const App = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [needsPasswordChange, setNeedsPasswordChange] = useState(false);
 
+  useNativePush(userId);
+
   useEffect(() => {
+
     const checkUserStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
