@@ -25,6 +25,29 @@ workflows:
       - name: Add iOS platform
         script: |
           npx cap add ios || true
+      - name: Place Firebase config for iOS
+        script: |
+          # GoogleService-Info.plist debe estar subido a Codemagic como ARCHIVO SECRETO
+          # con el nombre FIREBASE_GOOGLE_SERVICE_INFO_PLIST
+          # (Settings > Files and secrets > Secret files > NEW FILE).
+          if [ -n "$FIREBASE_GOOGLE_SERVICE_INFO_PLIST" ] && [ -f "$FIREBASE_GOOGLE_SERVICE_INFO_PLIST" ]; then
+            cp "$FIREBASE_GOOGLE_SERVICE_INFO_PLIST" ios/App/App/GoogleService-Info.plist
+            ruby -e '
+              require "xcodeproj"
+              proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
+              target = proj.targets.find { |t| t.name == "App" }
+              group = proj.main_group.find_subpath("App", false)
+              ref = group.files.find { |f| f.path.to_s.end_with?("GoogleService-Info.plist") }
+              ref ||= group.add_file_reference("GoogleService-Info.plist")
+              unless target.resources_build_phase.files_references.include?(ref)
+                target.add_resources([ref])
+              end
+              proj.save
+              puts "GoogleService-Info.plist registrado en el proyecto Xcode"
+            ' || echo "AVISO: no se pudo registrar GoogleService-Info.plist en Xcode"
+          else
+            echo "AVISO: falta el archivo secreto FIREBASE_GOOGLE_SERVICE_INFO_PLIST; la app se compilara sin avisos nativos"
+          fi
       - name: Set iOS deployment target (required by CapacitorCamera)
         script: |
           # CapacitorCamera 8.x requires iOS 15+. Update Podfile and project.pbxproj.
@@ -236,6 +259,9 @@ workflows:
           key_password: $KEY_PASSWORD
       vars:
         PACKAGE_NAME: "com.pantherafitness.alburquerque"
+        # Último código de versión subido a Google Play. Cada build suma 1 (7, 8, 9...).
+        BASE_VERSION_CODE: "6"
+        APP_VERSION_NAME: "1.0.4"
       node: v20.11.1
     scripts:
       - name: Install dependencies
@@ -247,7 +273,18 @@ workflows:
       - name: Add Android platform
         script: |
           npx cap add android || true
-      - name: Set Android target SDK to API 36
+      - name: Place Firebase config for Android
+        script: |
+          # google-services.json debe estar subido a Codemagic como ARCHIVO SECRETO
+          # con el nombre FIREBASE_GOOGLE_SERVICES_JSON
+          # (Settings > Files and secrets > Secret files > NEW FILE).
+          if [ -n "$FIREBASE_GOOGLE_SERVICES_JSON" ] && [ -f "$FIREBASE_GOOGLE_SERVICES_JSON" ]; then
+            cp "$FIREBASE_GOOGLE_SERVICES_JSON" android/app/google-services.json
+            echo "google-services.json colocado en android/app/"
+          else
+            echo "AVISO: falta el archivo secreto FIREBASE_GOOGLE_SERVICES_JSON; la app se compilara sin avisos nativos"
+          fi
+      - name: Set Android SDK versions (API 36, minSdk 24)
         script: |
           chmod +x scripts/update-android-sdk.sh
           ./scripts/update-android-sdk.sh
@@ -256,15 +293,13 @@ workflows:
           npx cap sync android
       - name: Set Android version and build number
         script: |
-          BUILD_NO="${BUILD_NUMBER:-${CM_BUILD_NUMBER:-1}}"
-          # android/app/build.gradle se genera en el paso anterior
+          BUILD_NO="${BUILD_NUMBER:-1}"
+          VERSION_CODE=$(( ${BASE_VERSION_CODE:-6} + BUILD_NO ))
           APP_BUILD="android/app/build.gradle"
           if [ -f "$APP_BUILD" ]; then
-            # versionName
-            perl -i -pe "s/versionName \"[0-9.]+\"/versionName \"1.0.3\"/g" "$APP_BUILD"
-            # versionCode
-            perl -i -pe "s/versionCode [0-9]+/versionCode $BUILD_NO/g" "$APP_BUILD"
-            echo "Android versionName=1.0.3 versionCode=$BUILD_NO"
+            perl -i -pe "s/versionName \"[0-9.]+\"/versionName \"$APP_VERSION_NAME\"/g" "$APP_BUILD"
+            perl -i -pe "s/versionCode [0-9]+/versionCode $VERSION_CODE/g" "$APP_BUILD"
+            echo "Android versionName=$APP_VERSION_NAME versionCode=$VERSION_CODE"
           fi
       - name: Build Android App Bundle
         script: |
