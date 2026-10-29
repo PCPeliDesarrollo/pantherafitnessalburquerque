@@ -250,13 +250,10 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
-      # IMPORTANTE: configura tu keystore en Codemagic (Settings > Publisher account > Keystores)
-      # y cambia los valores de abajo por los tuyos antes de subir a Google Play.
+      # Sube el keystore en Codemagic (Teams > Code signing identities > Android keystores)
+      # con el nombre de referencia exacto de abajo.
       android_signing:
-        - keystore_name: panthera_release_keystore
-          keystore_password: $KEYSTORE_PASSWORD
-          key_alias: $KEY_ALIAS
-          key_password: $KEY_PASSWORD
+        - panthera_release_keystore
       vars:
         PACKAGE_NAME: "com.pantherafitness.alburquerque"
         # Último código de versión subido a Google Play. Cada build suma 1 (7, 8, 9...).
