@@ -45,8 +45,18 @@ workflows:
               proj.save
               puts "GoogleService-Info.plist registrado en el proyecto Xcode"
             ' || echo "AVISO: no se pudo registrar GoogleService-Info.plist en Xcode"
+            # Firebase en iOS exige FirebaseApp.configure() al arrancar; sin ello la app se cierra sola.
+            APPDELEGATE="ios/App/App/AppDelegate.swift"
+            if ! grep -q "FirebaseApp.configure" "$APPDELEGATE"; then
+              perl -0777 -i -pe 's/import UIKit\n/import UIKit\nimport FirebaseCore\n/' "$APPDELEGATE"
+              perl -0777 -i -pe 's/(didFinishLaunchingWithOptions[^\{]*\{\n)/$1        FirebaseApp.configure()\n/' "$APPDELEGATE"
+            fi
+            grep -n "Firebase" "$APPDELEGATE"
           else
-            echo "AVISO: falta el archivo secreto FIREBASE_GOOGLE_SERVICE_INFO_PLIST; la app se compilara sin avisos nativos"
+            # Sin el archivo de Firebase la app se cerraría al abrirse: se quita el complemento de avisos.
+            echo "AVISO: falta FIREBASE_GOOGLE_SERVICE_INFO_PLIST; se compila SIN avisos nativos para que la app abra"
+            npm uninstall @capacitor-firebase/messaging --legacy-peer-deps
+            npx cap sync ios
           fi
       - name: Set iOS deployment target (required by CapacitorCamera)
         script: |
