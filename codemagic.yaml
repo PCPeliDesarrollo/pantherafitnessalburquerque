@@ -226,7 +226,7 @@ workflows:
           INFO_PLIST="ios/App/App/Info.plist"
           
           # Set the marketing version. Must be higher than the latest approved App Store version.
-          NEW_VERSION="1.0.4"
+          NEW_VERSION="1.0.5"
 
           if [ -f "$INFO_PLIST" ]; then
             # Set CFBundleShortVersionString (marketing version shown in App Store)
