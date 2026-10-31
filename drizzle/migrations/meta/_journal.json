@@ -15,6 +15,13 @@
       "when": 1792776917702,
       "tag": "0001_device_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793446773416,
+      "tag": "0002_migration",
+      "breakpoints": true
     }
   ]
 }
