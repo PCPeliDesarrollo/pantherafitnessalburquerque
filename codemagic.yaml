@@ -106,6 +106,29 @@ workflows:
           else
             echo "Warning: Info.plist not found at $INFO_PLIST"
           fi
+      - name: Enable Push Notifications capability
+        script: |
+          # Sin este permiso el iPhone nunca entrega identificador y no llegan avisos con la app cerrada.
+          ENT="ios/App/App/App.entitlements"
+          cat > "$ENT" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>aps-environment</key>
+            <string>production</string>
+          </dict>
+          </plist>
+          EOF
+          sed -i '' 's/^          //' "$ENT"
+          PBXPROJ="ios/App/App.xcodeproj/project.pbxproj"
+          if ! grep -q "CODE_SIGN_ENTITLEMENTS" "$PBXPROJ"; then
+            perl -i -pe 's/(INFOPLIST_FILE = App\/Info.plist;)/$1\n\t\t\t\tCODE_SIGN_ENTITLEMENTS = App\/App.entitlements;/g' "$PBXPROJ"
+          fi
+          INFO_PLIST="ios/App/App/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$INFO_PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string remote-notification" "$INFO_PLIST" 2>/dev/null || true
+          grep -n "CODE_SIGN_ENTITLEMENTS" "$PBXPROJ" || echo "AVISO: no se pudo enlazar App.entitlements"
       - name: Sync iOS platform
         script: |
           # Allow this step to continue even if CocoaPods fails here.
