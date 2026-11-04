@@ -71,6 +71,36 @@ export function useNotifications() {
     }
   };
 
+  const deleteAllUnread = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const removed = unreadCount;
+
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("read", false);
+
+    if (error) {
+      console.error("Error deleting unread notifications:", error);
+      toast({
+        title: "No se han podido borrar",
+        description: "Vuelve a intentarlo dentro de un momento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNotifications((prev) => prev.filter((n) => n.read));
+    setUnreadCount(0);
+    toast({
+      title: "Avisos sin leer borrados",
+      description: `Se han quitado ${removed} ${removed === 1 ? "aviso" : "avisos"}.`,
+    });
+  };
+
   useEffect(() => {
     const initNotifications = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -117,6 +147,7 @@ export function useNotifications() {
     unreadCount,
     markAsRead,
     deleteNotification,
+    deleteAllUnread,
     fetchNotifications,
   };
 }
