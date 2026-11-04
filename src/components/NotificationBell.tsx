@@ -1,4 +1,4 @@
-import { Bell, X } from "lucide-react";
+import { Bell, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -10,7 +10,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, deleteNotification } =
+  const { notifications, unreadCount, markAsRead, deleteNotification, deleteAllUnread } =
     useNotifications();
 
   const handleNotificationClick = (notificationId: string, isRead: boolean) => {
@@ -37,12 +37,18 @@ export function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between gap-2 p-4 border-b">
           <h3 className="font-semibold">Notificaciones</h3>
           {unreadCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {unreadCount} sin leer
-            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-destructive"
+              onClick={() => deleteAllUnread()}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Borrar sin leer ({unreadCount})
+            </Button>
           )}
         </div>
         <ScrollArea className="h-[400px]">
