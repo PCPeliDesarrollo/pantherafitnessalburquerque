@@ -29,6 +29,13 @@
       "when": 1793447211066,
       "tag": "0003_notify_admins_on_booking",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793804254011,
+      "tag": "0004_user_booking_and_payment_notifications",
+      "breakpoints": true
     }
   ]
 }
