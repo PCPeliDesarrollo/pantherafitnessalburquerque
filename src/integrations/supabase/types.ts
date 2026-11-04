@@ -664,6 +664,8 @@ export type Database = {
         Returns: undefined
       }
       reset_monthly_bookings: { Args: never; Returns: undefined }
+      send_class_hour_reminders: { Args: never; Returns: undefined }
+      send_payment_reminders: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "basica" | "basica_clases" | "full"
