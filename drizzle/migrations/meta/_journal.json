@@ -50,6 +50,13 @@
       "when": 1794309564894,
       "tag": "0006_promote_waitlist_on_any_capacity_update",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794309714815,
+      "tag": "0007_restrict_training_table_files",
+      "breakpoints": true
     }
   ]
 }
