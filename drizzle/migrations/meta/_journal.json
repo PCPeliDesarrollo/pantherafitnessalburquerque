@@ -36,6 +36,13 @@
       "when": 1793804254011,
       "tag": "0004_user_booking_and_payment_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794309316834,
+      "tag": "0005_promote_waitlist_on_capacity_increase",
+      "breakpoints": true
     }
   ]
 }
