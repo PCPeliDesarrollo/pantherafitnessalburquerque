@@ -43,6 +43,13 @@
       "when": 1794309316834,
       "tag": "0005_promote_waitlist_on_capacity_increase",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794309564894,
+      "tag": "0006_promote_waitlist_on_any_capacity_update",
+      "breakpoints": true
     }
   ]
 }
