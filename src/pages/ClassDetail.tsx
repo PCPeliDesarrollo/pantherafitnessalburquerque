@@ -709,6 +709,12 @@ export default function ClassDetail() {
                                     <span className="text-sm">
                                       {booking.profiles?.full_name} {booking.profiles?.apellidos || ""}
                                     </span>
+                                    {isAdmin && (
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto text-destructive" aria-label="Quitar de la clase"
+                                        onClick={() => { if (confirm(`¿Quitar a ${booking.profiles?.full_name || "este usuario"} de la clase?`)) handleBooking(instance.scheduleId, instance.date, booking.user_id); }}>
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -731,6 +737,12 @@ export default function ClassDetail() {
                                         <span className="text-sm">
                                           {booking.profiles?.full_name} {booking.profiles?.apellidos || ""}
                                         </span>
+                                        {isAdmin && (
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto text-destructive" aria-label="Quitar de la clase"
+                                        onClick={() => { if (confirm(`¿Quitar a ${booking.profiles?.full_name || "este usuario"} de la clase?`)) handleBooking(instance.scheduleId, instance.date, booking.user_id); }}>
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    )}
                                       </div>
                                     ))}
                                   </div>
